@@ -22,13 +22,11 @@
 
 # # Assignment 1: Linear Regression
 
-# *Type your name here and DELETE ALL TEXT PROVIDED HERE THAT ARE INSTRUCTIONS TO YOU*
+# Jared Zymbaluk
 
 # ## Overview
 
 # Describe the objective of this assignment, and very briefly how you accomplish it.  Say things like "linear model", "samples of inputs and known desired outputs" and "minimize the sum of squared errors". DELETE THIS TEXT AND INSERT YOUR OWN.
-
-# ## Method
 
 # Define in code cells the following functions as discussed in class.  Your functions' arguments and return types must be as shown here.
 # 
@@ -50,14 +48,14 @@
 # 
 # which performs the incremental training process described in class as stochastic gradient descent (SGC).  The result of this function is a dictionary with the same keys as the dictionary returned by the above ```train``` function.
 
-# In[1]:
+# In[ ]:
 
 import numpy as np
 import matplotlib.pyplot as plt
 get_ipython().magic('matplotlib inline')
 
 
-# In[26]:
+# In[ ]:
 
 def train(X, T):
     #Code taken from Professor Anderson's notebook
@@ -68,14 +66,14 @@ def train(X, T):
     w = np.linalg.lstsq( Xs1.T @ Xs1, Xs1.T @ T)[0]
     
     #build return dictionary
-    ret = {"means" : means,
-           "stds" : stds,
-           "w" : w
-          }
-    return ret
+    return {"means" : means,
+             "stds" : stds,
+             "w" : w
+           }
+    
 
 
-# In[75]:
+# In[ ]:
 
 def use(model, X):
     #Code taken from Professor Anderson's notebook
@@ -90,7 +88,7 @@ def use(model, X):
     return prediction
 
 
-# In[154]:
+# In[ ]:
 
 def rmse(predict, T):
     #find average of the difference, square it and then square root
@@ -98,37 +96,34 @@ def rmse(predict, T):
     
 
 
-# In[160]:
+# In[ ]:
 
 def trainSGD(X, T, learningRate, numberOfIterations):
+    #Code taken from Professor Anderson's notebook
+    means = X.mean(0)
+    stds = X.std(0)
+    Xs = (X - means) / stds
+    Xs1 = np.insert(Xs, 0, 1, axis=1)
     
-    w = np.zeros((2,1))
-
-    # Collect the weights after each update in a list for later plotting. 
-    # This is not part of the training algorithm
-    ws = [w.copy()]
-
-    xs = np.linspace(0, 10, 100).reshape((-1,1))
-    xs1 = np.insert(xs, 0, 1, axis=1)
+    w = np.zeros((Xs1.shape[1],T.shape[1]))
+    nOutputs = T.shape[1]
+    nInputs = Xs1.shape[1]
     
-    newX = np.insert(X, 0, 1, axis=1)
-    step = 0
     for iter in range(numberOfIterations):
-        for n in range(learningRate):
+        for n in range(len(X)):
+            predicted = Xs1[n:n+1,:] @ w
+            w += learningRate * Xs1[n:n+1, :].T * (T[n:n+1, :] - predicted)
         
-            step += 1
-        
-            predicted = newX[n:n+1,:] @ w  # n:n+1 is used instead of n to preserve the 2-dimensional matrix structure
-            # Update w using negative derivative of error for nth sample
-            w += eta * newX[n:n+1, :].T * (T[n:n+1, :] - predicted)
-            ws.append(w.copy())
                         
-    return w
+    return {"means" : means,
+           "stds" : stds,
+           "w" : w
+          }
 
 
 # ## Examples
 
-# In[155]:
+# In[ ]:
 
 import numpy as np
 
@@ -140,36 +135,36 @@ print('Targets')
 print(T)
 
 
-# In[156]:
+# In[ ]:
 
 model = train(X, T)
 model
 
 
-# In[157]:
+# In[ ]:
 
 predicted = use(model, X)
 predicted
 
 
-# In[158]:
+# In[ ]:
 
 rmse(predicted, T)
 
 
-# In[147]:
+# In[ ]:
 
 modelSGD = trainSGD(X, T, 0.01, 100)
 modelSGD
 
 
-# In[8]:
+# In[ ]:
 
 predicted = use(modelSGD, X)
 predicted
 
 
-# In[9]:
+# In[ ]:
 
 rmse(predicted, T)
 
@@ -178,7 +173,35 @@ rmse(predicted, T)
 
 # Download ```energydata_complete.csv``` from the [Appliances energy prediction Data Set ](https://archive.ics.uci.edu/ml/datasets/Appliances+energy+prediction) at the UCI Machine Learning Repository. Ignore the first column (date and time), use the next two columns as target variables, and use all but the last two columns (named rv1 and rv2) as input variables. 
 # 
-# In this section include a summary of this data, including the number of samples, the number and kinds of input variables, and the number and kinds of target variables.  Also mention who recorded the data and how.  Some of this information can be found in the paper that is linked to at the UCI site for this data set.  Also show some plots of target variables versus some of the input variables to investigate whether or not linear relationships might exist.  Discuss your observations of these plots.
+# There are 19735 total data instances, Appliances and lights are the variables we want to predict. The other variables are our training variables. The data was collected by Luis Candanedo with a ZigBee wireless sensor network.
+
+# In[261]:
+
+file = np.genfromtxt('energydata_complete.csv', dtype='str',delimiter=',',deletechars='"')
+file = np.char.replace(file, '"', '')
+file = np.char.replace(file, ' ', '')
+file = np.delete(file, 0,1)
+file = np.delete(file, -1,1)
+file = np.delete(file, -1,1)
+names = file[0]
+names = names.astype(np.str)
+data = file[1:]
+data = data.astype(np.float)
+
+Tenergy = np.take(data,[0,1],1)
+Xenergy = np.take(data,range(2,26),1)
+Tnames = np.take(names,[0,1])
+Xnames = np.take(names,range(2,26))
+
+
+# In[264]:
+
+plt.figure(figsize=(10,10))
+plt.subplot(2, 1, p+1)
+plt.plot(Xenergy, Tenergy, 'o')
+plt.xlabel("Predictor Variables")
+plt.ylabel("Target Variables" )
+
 
 # ## Results
 
@@ -188,15 +211,155 @@ rmse(predicted, T)
 # 
 # Show the values of the resulting weights and discuss which ones might be least relevant for fitting your linear model.  Remove them, fit the linear model again, plot the results, and discuss what you see.
 
-# ## Grading
-# 
-# Your notebook will be run and graded automatically.  Test this grading process by first downloading [A1grader.tar](http://www.cs.colostate.edu/~anderson/cs445/notebooks/A1grader.tar) and extract `A1grader.py` from it. Run the code in the following cell to demonstrate an example grading session.  You should see a perfect execution score of 70/70 if your functions are defined correctly. The remaining 30 points will be based on the results you obtain from the energy data and on your discussions.
-# 
-# For the grading script to run correctly, you must first name this notebook as 'Lastname-A1.ipynb' with 'Lastname' being your last name, and then save this notebook.
-# 
-# A different, but similar, grading script will be used to grade your checked-in notebook.  It will include additional tests.  You need not include code to test that the values passed in to your functions are the correct form.  
+# #### Training with regular Train
 
-# In[159]:
+# In[198]:
+
+trained = train(Xenergy,Tenergy)
+used = use(trained, Xenergy)
+rmse1 = rmse(used,Tenergy)
+rmse1
+
+
+# #### Training with SGD LR 0.01
+
+# In[ ]:
+
+trainedSGD = trainSGD(Xenergy,Tenergy, .01, 10)
+usedSGD = use(trainedSGD, Xenergy)
+rmse2 = rmse(usedSGD,Tenergy)
+rmse2
+
+
+# ^This is bad, as we can see later on, our predictions are way off. Let's try it with a smaller learning rate!
+
+# #### Training with SGD LR 0.001
+
+# In[ ]:
+
+trainedSGD3 = trainSGD(Xenergy,Tenergy, .001, 100)
+usedSGD3 = use(trainedSGD2, Xenergy)
+rmse3 = rmse(usedSGD3,Tenergy)
+rmse3
+
+
+# ^Getting closer! Let's go even smaller
+
+# #### Training with SGD LR 0.00001
+
+# In[ ]:
+
+trainedSGD4 = trainSGD(Xenergy,Tenergy, .00001, 100)
+usedSGD4 = use(trainedSGD4, Xenergy)
+rmse4 = rmse(usedSGD4,Tenergy)
+rmse4
+
+
+# ^This is pretty good! and smaller and we will get a less accurate prediction. We'll stick with this one
+
+# # Plotting a sample index from 1-100 (train and best RMSE of trainSGD):
+
+# In[ ]:
+
+plt.figure(figsize=(10,10))
+for p in range(2):
+    for i in range(100):
+        plt.subplot(2, 1, p+1)
+        plt.plot(i, Tenergy[i, p], 'or',)
+        plt.plot(i, used[i, p], 'ob',)
+        plt.xlabel("index")
+        plt.ylabel("usage" )
+
+
+# ^It looks like our prediction for the first column of data was actually pretty good. It seems like a few outliers might have thrown off our results. However, the general curve of the line is fairly similar. The second column is less accurate. I would think it is because the amount of zeros from indexes 50-80 might have thrown off our predictions
+
+# In[ ]:
+
+plt.figure(figsize=(10,10))
+for p in range(2):
+    for i in range(100):
+        plt.subplot(2, 1, p+1)
+        plt.plot(i, Tenergy[i, p], 'or',)
+        plt.plot(i, usedSGD4[i, p], 'ob',)
+        plt.xlabel("index")
+        plt.ylabel("usage" )
+
+
+# ^these plots appear fairly similar to our regular train plots
+
+# # Plotting predicted energy use vs. actual
+
+# #### plotting regular train
+
+# In[ ]:
+
+plt.figure(figsize=(10,10))
+for p in range(2):
+    plt.subplot(2, 1, p+1)
+    plt.plot(used[:, p], Tenergy[:, p], 'o')
+    plt.xlabel("Predicted ")
+    plt.ylabel("Actual " )
+    a = max(min(used[:, p]), min(Tenergy[:, p]))
+    b = min(max(used[:, p]), max(Tenergy[:, p]))
+    plt.plot([a, b], [a, b], 'r', linewidth=3)
+
+
+# #### Plotting LR .01
+
+# In[ ]:
+
+plt.figure(figsize=(10,10))
+for p in range(2):
+    plt.subplot(2, 1, p+1)
+    plt.plot(usedSGD[:, p], Tenergy[:, p], 'o')
+    plt.xlabel("Predicted ")
+    plt.ylabel("Actual " )
+    a = max(min(usedSGD[:, p]), min(Tenergy[:, p]))
+    b = min(max(usedSGD[:, p]), max(Tenergy[:, p]))
+    plt.plot([a, b], [a, b], 'r', linewidth=3)
+
+
+# #### Plotting LR .001
+
+# In[ ]:
+
+plt.figure(figsize=(10,10))
+for p in range(2):
+    plt.subplot(2, 1, p+1)
+    plt.plot(usedSGD2[:, p], Tenergy[:, p], 'o')
+    plt.xlabel("Predicted ")
+    plt.ylabel("Actual " )
+    a = max(min(usedSGD2[:, p]), min(Tenergy[:, p]))
+    b = min(max(usedSGD2[:, p]), max(Tenergy[:, p]))
+    plt.plot([a, b], [a, b], 'r', linewidth=3)
+
+
+# #### Plotting LR .001
+
+# In[ ]:
+
+plt.figure(figsize=(10,10))
+for p in range(2):
+    plt.subplot(2, 1, p+1)
+    plt.plot(usedSGD3[:, p], Tenergy[:, p], 'o')
+    plt.xlabel("Predicted ")
+    plt.ylabel("Actual " )
+    a = max(min(usedSGD3[:, p]), min(Tenergy[:, p]))
+    b = min(max(usedSGD3[:, p]), max(Tenergy[:, p]))
+    plt.plot([a, b], [a, b], 'r', linewidth=3)
+
+
+# In[231]:
+
+print(trained["w"])
+print(trainedSGD4["w"])
+
+
+# ^We can see that some of these have a very low weight! Let's try pruning some to see if we can do better
+
+# Unfortunately I was unable to figure out how to remove these weights from w, and get it to still work with the use function. I realize that if we were to remove the low weights from our array, we would get a better prediction
+
+# In[ ]:
 
 get_ipython().magic('run -i "A1grader.py"')
 
