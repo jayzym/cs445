@@ -84,7 +84,7 @@ class NeuralNetwork:
         Zprev = X
         for i in range(len(self.nhs)):
             V = self.Vs[i]
-            Zprev = activation(Zprev @ V[1:, :] + V[0:1, :])  # handling bias weight without adding column of 1's
+            Zprev = self.activation(Zprev @ V[1:, :] + V[0:1, :])  # handling bias weight without adding column of 1's
         Y = Zprev @ self.W[1:, :] + self.W[0:1, :]
         return 0.5 * np.mean((T-Y)**2)
 
@@ -95,7 +95,7 @@ class NeuralNetwork:
         Z = [Zprev]
         for i in range(len(self.nhs)):
             V = self.Vs[i]
-            Zprev = activation(Zprev @ V[1:, :] + V[0:1, :])
+            Zprev = self.activation(Zprev @ V[1:, :] + V[0:1, :])
             Z.append(Zprev)
         Y = Zprev @ self.W[1:, :] + self.W[0:1, :]
         # Do backward pass, starting with delta in output layer
@@ -103,7 +103,7 @@ class NeuralNetwork:
         dW = np.vstack((np.ones((1, delta.shape[0])) @ delta, 
                         Z[-1].T @ delta))
         dVs = []
-        delta = (1 - Z[-1]**2) * (delta @ self.W[1:, :].T)
+        delta = self.activationDerivative(Z[-1]) * (delta @ self.W[1:, :].T)
         for Zi in range(len(self.nhs), 0, -1):
             Vi = Zi - 1  # because X is first element of Z
             dV = np.vstack((np.ones((1, delta.shape[0])) @ delta,
@@ -160,7 +160,7 @@ class NeuralNetwork:
         Z = [Zprev]
         for i in range(len(self.nhs)):
             V = self.Vs[i]
-            Zprev = activation(Zprev @ V[1:, :] + V[0:1, :])
+            Zprev = self.activation(Zprev @ V[1:, :] + V[0:1, :])
             Z.append(Zprev)
         Y = Zprev @ self.W[1:, :] + self.W[0:1, :]
         Y = self._unstandardizeT(Y)

@@ -34,14 +34,14 @@
 
 # Start with the ```NeuralNetwork``` class defined in lecture notes 09. Put that class definition as written into *neuralnetworks.py* into your current directory.  Also place *mlutilities.py* from lecture notes 09 in your current directory. If this is done correctly, then the following code should run and produce results similar to what is shown here.
 
-# In[34]:
+# In[1]:
 
 import numpy as np
 import matplotlib.pyplot as plt
 get_ipython().magic('matplotlib inline')
 
 
-# In[35]:
+# In[2]:
 
 import neuralnetworks as nn
 
@@ -53,7 +53,7 @@ nnet.train(X, T, 100, verbose=True)
 nnet
 
 
-# In[36]:
+# In[3]:
 
 plt.figure(figsize=(8, 12))
 plt.subplot(3, 1, 1)
@@ -77,30 +77,30 @@ nnet.draw()
 #         
 # Now replace the code in the appropriate places in the ```NeuralNetwork``` class so that ```np.tanh``` is replaced with a call to the ```self.activation``` method and its derivative is replaced by calls to ```self.activationDerivative```.
 
-# In[37]:
+# In[4]:
 
 import neuralnetworksA2 as nn2
 
 nnet = nn2.NeuralNetwork(1, [10], 1)
 
 
-# In[38]:
+# In[5]:
 
 [nnet.activation(s) for s in [-2, -0.5, 0, 0.5, 2]]
 
 
-# In[39]:
+# In[6]:
 
 [nnet.activationDerivative(nnet.activation(s)) for s in [-2, -0.5, 0, 0.5, 2]]
 
 
-# In[40]:
+# In[7]:
 
 nnet.train(X, T, 100, verbose=True)
 nnet
 
 
-# In[41]:
+# In[8]:
 
 plt.figure(figsize=(8, 12))
 plt.subplot(3, 1, 1)
@@ -120,7 +120,7 @@ nnet.draw()
 
 # Using your new ```NeuralNetwork``` class, you can compare the error obtained on a given data set by looping over various hidden layer structures.  Here is an example using the simple toy data from above.
 
-# In[42]:
+# In[9]:
 
 import random
 
@@ -134,18 +134,18 @@ Xtrain, Ttrain = X[trainRows, :], T[trainRows, :]
 Xtest, Ttest = X[testRows, :], T[testRows, :]
 
 
-# In[43]:
+# In[10]:
 
 Xtrain.shape, Ttrain.shape, Xtest.shape, Ttest.shape
 
 
-# In[44]:
+# In[11]:
 
 def rmse(A, B):
     return np.sqrt(np.mean((A - B)**2))
 
 
-# In[50]:
+# In[12]:
 
 import pandas as pd
 
@@ -170,7 +170,7 @@ plt.grid(True)
 # 
 # Now, using the best hidden layer structure found, write the code that varies the number of training iterations. The results you get will be different from the ones shown below.
 
-# In[94]:
+# In[13]:
 
 errors = []
 nIterationsList = [10, 20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
@@ -207,7 +207,7 @@ plt.grid(True)
 #   
 # as output variables.
 
-# In[81]:
+# In[14]:
 
 def makeMPGData(filename='auto-mpg.data'):
     def missingIsNan(s):
@@ -226,12 +226,12 @@ def makeMPGData(filename='auto-mpg.data'):
     return X,T,Xnames,Tname
 
 
-# In[84]:
+# In[15]:
 
 Xa,Ta,Xanames,Taname = makeMPGData()
 
 
-# In[85]:
+# In[16]:
 
 naRows = Xa.shape[0]
 arows = np.arange(naRows)
@@ -243,12 +243,12 @@ Xatrain, Tatrain = Xa[atrainRows, :], Ta[atrainRows, :]
 Xatest, Tatest = Xa[atestRows, :], Ta[atestRows, :]
 
 
-# In[86]:
+# In[17]:
 
 Xtrain.shape, Ttrain.shape, Xtest.shape, Ttest.shape
 
 
-# In[90]:
+# In[18]:
 
 aerrors = []
 ahiddens = [0] + [[nu] * nl for nu in [1, 5, 10, 20, 50] for nl in [1, 2, 3, 4, 5]]
@@ -257,7 +257,7 @@ for hids in ahiddens:
     annet = nn.NeuralNetwork(Xatrain.shape[1], hids, Tatrain.shape[1])
     annet.train(Xatrain, Tatrain, 500)
     aerrors.append([hids, rmse(Tatrain, annet.use(Xatrain)), rmse(Tatest, annet.use(Xatest))])
-aerrors = pd.DataFrame(errors)
+aerrors = pd.DataFrame(aerrors)
 print(aerrors)
 
 plt.figure(figsize=(10, 10))
@@ -267,7 +267,9 @@ plt.xticks(range(aerrors.shape[0]), ahiddens, rotation=30, horizontalalignment='
 plt.grid(True)
 
 
-# In[93]:
+# ^After running this several times, it appears that the structures that most often show up as the best (lowest RMSE) are [5,5] and [50,50]. [50] showed up sometimes. Overal it seemed to vary a bit. I'll choose [5,5] as my structure
+
+# In[ ]:
 
 aerrors = []
 anIterationsList = [10, 20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
@@ -280,11 +282,13 @@ aerrors = pd.DataFrame(aerrors)
 print(anIterationsList)
 print(aerrors)
 plt.figure(figsize=(10, 10))
-plt.plot(errors.values[:, 1:], 'o-')
+plt.plot(aerrors.values[:, 1:], 'o-')
 plt.legend(('Train RMSE', 'Test RMSE'))
-plt.xticks(range(errors.shape[0]), nIterationsList) # , rotation=30, horizontalalignment='right')
+plt.xticks(range(aerrors.shape[0]), anIterationsList) # , rotation=30, horizontalalignment='right')
 plt.grid(True)
 
+
+# ^After determining my best hidden structure to be [5,5]. I ran the iterations several times. While the results were all over the place. Most often the best RMSE was greater than 200. The graph will usually fluctuate after 200, and then settle down and get closer to zero as the number of iterations approached 500. Sometimes 500 would even be the best number of iterations. Overall I think it's fair to say that a higher number of iterations tends to result in a better score.
 
 # ## Grading and Check-in
 
@@ -296,11 +300,7 @@ plt.grid(True)
 # 
 # A different, but similar, grading script will be used to grade your checked-in notebook. It will include other tests.
 
-# In[95]:
+# In[ ]:
 
 get_ipython().magic('run -i A2grader.py')
 
-
-# ## Extra Credit
-
-# Repeat the comparisons of hidden layer structures and numbers of training iterations on a second data set from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml).
